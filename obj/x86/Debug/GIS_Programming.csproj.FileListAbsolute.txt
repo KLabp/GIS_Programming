@@ -1,0 +1,10 @@
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\bin\Debug\GIS_Programming.exe
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\bin\Debug\GIS_Programming.pdb
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.csprojResolveAssemblyReference.cache
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.AdmitBookmarkName.resources
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.MainForm.resources
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.Properties.Resources.resources
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.csproj.GenerateResource.Cache
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.exe
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.pdb
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Debug\GIS_Programming.DataBoard.resources
