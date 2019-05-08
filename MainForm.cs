@@ -23,6 +23,7 @@ namespace GIS_Programming
     public sealed partial class MainForm : Form
     {
         DrawAndAddLine drawAndAddLine = null;
+        DrawAndAddPolygon drawAndAddPolygon = null;
         #region class private members
         private IMapControl3 m_mapControl = null;
         private string m_mapDocumentName = string.Empty;
@@ -150,10 +151,98 @@ namespace GIS_Programming
             Load_Bookmark();//load bookmarks
         }
 
+
+        /* 鼠标交互: 
+         * 1. OnMouseDown
+         * 2. OnDoubleClick
+         * 3. OnMouseMove
+         */
+        private void axMapControl1_OnMouseDown(object sender, IMapControlEvents2_OnMouseDownEvent e)
+        {
+            //IMapControlEvents2_OnMouseDownEvent e 的e.x和e.MapX有什么区别？
+            if (miAddFeature.Checked == true)
+            {
+                //AddPoint模式
+                if (miAddPoint.Checked == true)
+                {
+                    //if (!AddPoint(e.mapX, e.mapY))
+                        //MessageBox.Show("添加点失败！"); 
+                    AddPoint(e.mapX, e.mapY);
+                }
+                //AddLine模式
+                else if (miAddLine.Checked == true)
+                {
+                    //问题在于，需要有个地方来存放INewLineFeedback——现在试着使用全局变量
+                    //如果类的全局变量为空，为类全局变量新建实例
+                    if (drawAndAddLine == null)
+                    {
+                        drawAndAddLine = new DrawAndAddLine(axMapControl1.Map);
+                        drawAndAddLine.OnMouseDown(e.button, e.shift, e.x, e.y);
+                    }
+                    //不为空，则在其中添加点
+                    else
+                        drawAndAddLine.OnMouseDown(e.button, e.shift, e.x, e.y);
+                }
+                else if (miAddPolygon.Checked == true)
+                {
+                    if (drawAndAddPolygon == null)
+                    {
+                        drawAndAddPolygon = new DrawAndAddPolygon(axMapControl1.Map);
+                        drawAndAddPolygon.OnMouseDown(e.button, e.shift, e.x, e.y);
+                    }
+                    //不为空，则在其中添加点
+                    else
+                        drawAndAddPolygon.OnMouseDown(e.button, e.shift, e.x, e.y);
+                }
+            }
+        }
+
+        private void axMapControl1_OnDoubleClick(object sender, IMapControlEvents2_OnDoubleClickEvent e)
+        {
+            if (miAddFeature.Checked == true)
+            {
+                if (miAddLine.Checked == true)
+                {
+                    //结束添加线时，双击，此时首先会调用OnMouseDown，添加最后一个点
+                    //if (!AddLine(drawAndAddLine.OnDoubleClick(e.button, e.shift, e.x, e.y)))
+                    AddLine(drawAndAddLine.OnDoubleClick(e.button, e.shift, e.x, e.y));
+                    //MessageBox.Show("添加线失败！");
+                    //置空还原
+                    drawAndAddLine = null;
+                }
+                else if (miAddPolygon.Checked == true)
+                {
+                    //结束添加线时，双击，此时首先会调用OnMouseDown，添加最后一个点
+                    //if (!AddPolygon(drawAndAddLine.OnDoubleClick(e.button, e.shift, e.x, e.y)))
+                    AddPolygon(drawAndAddPolygon.OnDoubleClick(e.button, e.shift, e.x, e.y));
+                    //MessageBox.Show("添加面失败！");
+                    //置空还原
+                    drawAndAddPolygon = null;
+                }
+            }
+        }
+
         private void axMapControl1_OnMouseMove(object sender, IMapControlEvents2_OnMouseMoveEvent e)
         {
             statusBarXY.Text = string.Format("{0}, {1}  {2}", e.mapX.ToString("#######.##"), e.mapY.ToString("#######.##"), axMapControl1.MapUnits.ToString().Substring(4));
+            if (miAddFeature.Checked == true)
+            {
+                if (miAddLine.Checked == true)
+                {
+
+                    if (drawAndAddLine != null)
+                        drawAndAddLine.OnMouseMove(e.button, e.shift, e.x, e.y);
+                }
+                else if (miAddPolygon.Checked == true)
+                {
+
+                    if (drawAndAddPolygon != null)
+                        drawAndAddPolygon.OnMouseMove(e.button, e.shift, e.x, e.y);
+                }
+            }
+            
         }
+
 
         /* Usage: Create a bookmark
          * Input: sBookmarkName = the name of bookmark introducted
@@ -470,21 +559,18 @@ namespace GIS_Programming
             //确定现在是“AddPoint模式”，不可再选择其他
             if (miAddPoint.Checked == false)
             {
+                miAddFeature.Checked = true;   //确定是否在绘制模式
                 miAddPoint.Checked = true;
                 miAddLine.Checked = false;
                 miAddPolygon.Checked = false;
-                miAddLine.Enabled = false;
-                miAddPolygon.Enabled = false;
             }
             else
             {
+                miAddFeature.Checked = false;
                 miAddPoint.Checked = false;
                 miAddLine.Checked = false;
                 miAddPolygon.Checked = false;
-                miAddLine.Enabled = true;
-                miAddPolygon.Enabled = true;
             }
-
         }
         private void miAddLine_Click(object sender, EventArgs e)
         {
@@ -494,16 +580,14 @@ namespace GIS_Programming
                 miAddLine.Checked = true;
                 miAddPoint.Checked = false;
                 miAddPolygon.Checked = false;
-                miAddPoint.Enabled = false;
-                miAddPolygon.Enabled = false;
+                miAddFeature.Checked = true;
             }
             else
             {
                 miAddLine.Checked = false;
                 miAddPoint.Checked = false;
                 miAddPolygon.Checked = false;
-                miAddPoint.Enabled = true;
-                miAddPolygon.Enabled = true;
+                miAddFeature.Checked = false;
             }
         }
         private void miAddPolygon_Click(object sender, EventArgs e)
@@ -514,16 +598,14 @@ namespace GIS_Programming
                 miAddPolygon.Checked = true;
                 miAddPoint.Checked = false;
                 miAddLine.Checked = false;
-                miAddPoint.Enabled = false;
-                miAddLine.Enabled = false;
+                miAddFeature.Checked = true;
             }
             else
             {
                 miAddPolygon.Checked = false;
                 miAddPoint.Checked = false;
                 miAddLine.Checked = false;
-                miAddPoint.Enabled = true;
-                miAddLine.Enabled = true;
+                miAddFeature.Checked = false;
             }
         }
 
@@ -539,36 +621,26 @@ namespace GIS_Programming
             else
                 return false;
         }
-        
-        private void axMapControl1_OnMouseDown(object sender, IMapControlEvents2_OnMouseDownEvent e)
+        private bool AddLine(IPolyline polyline)
         {
-            //IMapControlEvents2_OnMouseDownEvent e 的e.x和e.MapX有什么区别？
-            
-            //AddPoint模式
-            if (miAddPoint.Checked==true)
-            {
-                AddPoint(e.x,e.y);
-            }
-            //AddLine模式
-            else if (miAddLine.Checked == true)
-            {
-                //问题在于，需要有个地方来存放INewLineFeedback——现在试着使用全局变量
-                //如果类的全局变量为空，为类全局变量新建实例
-                if (drawAndAddLine == null)
-                    drawAndAddLine = new DrawAndAddLine(e.x, e.y, axMapControl1.Map);
-                //不为空，则在其中添加点
-                else
-                    drawAndAddLine.AddPointOfLine(e.x, e.y);
-            }
+            AddFeatureToLayer frmAFTL = new AddFeatureToLayer(axMapControl1.Map, polyline);
+            frmAFTL.Show();
+            if (frmAFTL.DialogResult == System.Windows.Forms.DialogResult.OK)
+                return true;
+            else
+                return false;
+        }
+        private bool AddPolygon(IPolygon polygon)
+        {
+            AddFeatureToLayer frmAFTL = new AddFeatureToLayer(axMapControl1.Map, polygon);
+            frmAFTL.Show();
+            if (frmAFTL.DialogResult == System.Windows.Forms.DialogResult.OK)
+                return true;
+            else
+                return false;
         }
 
-        private void axMapControl1_OnDoubleClick(object sender, IMapControlEvents2_OnDoubleClickEvent e)
-        {
-            if (miAddLine.Checked == true)
-            {
-                //结束添加线时，双击，此时首先会调用OnMouseDown，添加最后一个点
-            }
-        }
+        
 
         
 

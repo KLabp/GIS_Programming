@@ -26,18 +26,19 @@ namespace GIS_Programming
             InitializeComponent();
             m_map = map;
             m_geometry = geometry;
+            
             for (int i = 0; i < m_map.LayerCount; i++)
             {
                 //这段存疑,空shapefile不知道应该怎么处理
                 //使用IFeatureClass接口，所得到的FeatureType是esriFeatureType——esriFTSimple，而不是esriGeometryType
-                ILayer layer2 = m_map.get_Layer(i);
-                IFeatureLayer featureLayer = layer2 as IFeatureLayer;
-                IFeatureClass featureClass = featureLayer.FeatureClass;
-                if (featureClass.FeatureDataset == null) //如果是空图层，跳过(这就是空shapefile的问题，如果直接getFeature会越界，但是这个shapefile确实是需要考虑的)
-                    continue;
-                IFeature feature = featureClass.GetFeature(0);
+                //ILayer layer2 = m_map.get_Layer(i);
+                //IFeatureLayer featureLayer = layer2 as IFeatureLayer;
+                //IFeatureClass featureClass = featureLayer.FeatureClass;
+                //if (featureClass.FeatureDataset == null) //如果是空图层，跳过(这就是空shapefile的问题，如果直接getFeature会越界，但是这个shapefile确实是需要考虑的)
+                //    continue;
+                //IFeature feature = featureClass.GetFeature(0);
    
-                if(geometry.GeometryType==feature.Shape.GeometryType)
+                //if(geometry.GeometryType==feature.Shape.GeometryType)
                     cbLayerList.Items.Add(m_map.get_Layer(i).Name);  //只有类型相同的图层才会被加入combobox
             }
             if (cbLayerList.Items.Count == 0)
@@ -51,6 +52,7 @@ namespace GIS_Programming
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
+            this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
@@ -58,12 +60,13 @@ namespace GIS_Programming
         {
 
             DataOperator dataOperator = new DataOperator(m_map);
-            IPoint point = new PointClass();
-            bool SuccessAdd = dataOperator.AddFeatureToLayer(cbLayerList.SelectedItem.ToString(), tbName.Text, point);
+            //IPoint point = new PointClass();
+            bool SuccessAdd = dataOperator.AddFeatureToLayer(cbLayerList.SelectedItem.ToString(), tbName.Text, m_geometry);
             if (!SuccessAdd)
             {
                 MessageBox.Show("添加要素失败！");
-                return;
+                this.DialogResult = DialogResult.Abort;
+                this.Close();
             }
             else
             {

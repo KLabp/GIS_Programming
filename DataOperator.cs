@@ -207,7 +207,8 @@ namespace GIS_Programming
             if (sType == "Point")
                 geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPoint;
             else if (sType == "Line")
-                geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryLine;
+                geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolyline;
+                //geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryLine;
             else if (sType == "Polygon")
                 geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolygon;
             else
@@ -224,7 +225,6 @@ namespace GIS_Programming
             fieldsEdit.AddField((IField)fieldEdit);
 
             //CreateFeatureClass创建要素
-            //BUG: 创建shapefile功能，CANNOT ADDLINE HERE,有且仅有线shp无法添加，点、面都可以
             IFeatureClass featureClass = featureWorkspace.CreateFeatureClass(sWorkspaceName, fields, null, null, esriFeatureType.esriFTSimple, "Shape", "");
             if (featureWorkspace == null)
                 return null;
@@ -260,7 +260,9 @@ namespace GIS_Programming
             IFeatureClass featureClass = featureLayer.FeatureClass;
 
             //通过IFeature接口访问要素类新创建的要素，并判断是否成功，若失败，函数返回false
-            //BUG： CANNOT CREATEFEATURE
+            //ERROR: 有时候会出现HRESULT:0x80004005错误，如果是新建shapefile并加入就不会有这个错误
+            //NOTE: 此处只能对有访问权限的要素类进行操作（Esri的几份样例地图均不可以操作，比如在world.mxd中的任意图层中添加都会报错）
+            //NOTE: 其实我也不是很清楚是因为没有访问权限报错，还是因为featureclass有多个字段，而本函数没有对这些字段赋值，导致新feature加不进去
             IFeature feature = featureClass.CreateFeature();
             if (feature == null)
                 return false;
@@ -280,6 +282,5 @@ namespace GIS_Programming
             activeView.Refresh();
             return true;
         }
-
     }
 }

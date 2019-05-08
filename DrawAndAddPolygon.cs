@@ -11,16 +11,18 @@ using ESRI.ArcGIS.Geometry;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesFile;
+using ESRI.ArcGIS.Display;
+using ESRI.ArcGIS.SystemUI;
 
 namespace GIS_Programming
 {
-    class DrawAndAddLine
+    class DrawAndAddPolygon
     {
-        protected ESRI.ArcGIS.Display.INewLineFeedback m_lineFeedback;
+        protected ESRI.ArcGIS.Display.INewPolygonFeedback m_polygonFeedback;
         protected IMap m_map;
         protected IActiveView m_focusMap;
 
-        public DrawAndAddLine(IMap m_map)
+        public DrawAndAddPolygon(IMap m_map)
         {
             m_focusMap = m_map as IActiveView;
         }
@@ -29,41 +31,41 @@ namespace GIS_Programming
         {
             IPoint point = m_focusMap.ScreenDisplay.DisplayTransformation.ToMapPoint(X, Y) as IPoint;
 
-            if (m_lineFeedback == null)
+            if (m_polygonFeedback == null)
             {
-                m_lineFeedback = new ESRI.ArcGIS.Display.NewLineFeedback();
-                m_lineFeedback.Display = m_focusMap.ScreenDisplay;
-                m_lineFeedback.Start(point);
+                m_polygonFeedback = new ESRI.ArcGIS.Display.NewPolygonFeedback();
+                m_polygonFeedback.Display = m_focusMap.ScreenDisplay;
+                m_polygonFeedback.Start(point);
             }
 
-            m_lineFeedback.AddPoint(point);
-            m_lineFeedback.MoveTo(point);
-            
+            m_polygonFeedback.AddPoint(point);
+            m_polygonFeedback.MoveTo(point);
+
         }
         public void OnMouseMove(int Button, int Shift, int X, int Y)
         {
             // TODO: Add WxCrossSectionTool.OnMouseMove implementation
             IPoint point = m_focusMap.ScreenDisplay.DisplayTransformation.ToMapPoint(X, Y) as IPoint;
-            if(m_lineFeedback != null)
-                m_lineFeedback.MoveTo(point);
+            if (m_polygonFeedback != null)
+                m_polygonFeedback.MoveTo(point);
         }
-        public IPolyline OnDoubleClick(int Button, int Shift, int X, int Y)
+        public IPolygon OnDoubleClick(int Button, int Shift, int X, int Y)
         {
             //首先会先触发Down，然后执行下面的程序：
             m_focusMap.PartialRefresh(esriViewDrawPhase.esriViewGeoSelection, null, null);
 
-            IPolyline polyline = null;
-            if (m_lineFeedback != null)
+            IPolygon polygon = null;
+            if (m_polygonFeedback != null)
             {
-                polyline = m_lineFeedback.Stop();
+                polygon = m_polygonFeedback.Stop();
             }
 
             m_focusMap.PartialRefresh(esriViewDrawPhase.esriViewGeoSelection, null, null);
 
-            m_lineFeedback = null;
+            m_polygonFeedback = null;
 
-            return polyline;
+            return polygon;
         }
+
     }
 }
-    
