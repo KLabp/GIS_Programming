@@ -31,12 +31,10 @@ namespace GIS_Programming
             //tbDataName.Text = sDataName;
             dataGridView1.DataSource = dataTable;
         }
-
         public void FeatureSelection_Method(ISpatialFilter filter)
         {
             featureSelect.SelectFeatures(filter, esriSelectionResultEnum.esriSelectionResultNew, false);
         }
-
         private DataTable Get_Table()
         {
             DataOperator dataOperator = new DataOperator(m_map);
@@ -48,25 +46,25 @@ namespace GIS_Programming
             dataGridView1.DataSource = freshDataTable;
             lbResult.Text = "结果：" + freshDataTable.Rows.Count.ToString() + "（行）";
         }
-
         //when the selected layer was changed, dispaly the datatable of the newly selected layer
         private void cbLayerList_SelectedIndexChanged(object sender, EventArgs e)
         {
             TableRefresh_Method(Get_Table());
         }
-
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             TableRefresh_Method(Get_Table());
             featureSelect.Clear();
         }
-
         private void btnQuery_Click(object sender, EventArgs e)
         {
             DataQuery frm_DQ = new DataQuery(m_map, cbLayerList.SelectedItem.ToString());
             frm_DQ.Owner = this;//将查询窗口的所有者设置为本父窗口
             frm_DQ.OkEvent += new angency_Select(frm_DQ_OkEvent);
             frm_DQ.CbLayerEvent += new angency_Layer(frm_DQ_CbLayerEvent);
+            frm_DQ.CloseEvent += new angency_Close(frm_DQ_CloseEvent);
+            btnQuery.Enabled = false;
+            btnRefresh.Enabled = false;
             frm_DQ.Show(this);
         }
         void frm_DQ_OkEvent(IFeatureSelection f_selection)
@@ -77,6 +75,10 @@ namespace GIS_Programming
         {
             cbLayerList.SelectedIndex = index;
         }
- 
+        void frm_DQ_CloseEvent()
+        {
+            btnQuery.Enabled = true;
+            btnRefresh.Enabled = true;
+        }
     }
 }

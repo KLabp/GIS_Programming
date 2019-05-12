@@ -15,13 +15,18 @@ using ESRI.ArcGIS.DataSourcesFile;
 
 namespace GIS_Programming
 {
+    //委托
     public delegate void angency_Layer(int index);
-    public delegate void angency_Select(IFeatureSelection f_selection);//委托
+    public delegate void angency_Select(IFeatureSelection f_selection);
+    public delegate void angency_Close();
 
     public partial class DataQuery : Form
     {
+        //事件
         public event angency_Select OkEvent;
-        public event angency_Layer CbLayerEvent;//事件
+        public event angency_Layer CbLayerEvent;
+        public event angency_Close CloseEvent;
+
         public IMap m_map;
         public bool isShow = true;
         string layerName;
@@ -258,9 +263,10 @@ namespace GIS_Programming
 
         private void DataQuery_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //Refresh_Table(ownersLayerName, null);
             featureSelect.Clear();
             isShow = false;
+            if (CloseEvent != null)
+                CloseEvent();
         }
 
         
