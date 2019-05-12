@@ -10,3 +10,4 @@ E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Release\GIS_Programmi
 E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Release\GIS_Programming.csprojResolveAssemblyReference.cache
 E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Release\GIS_Programming.NewFeatureClass.resources
 E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Release\GIS_Programming.AddFeatureToLayer.resources
+E:\VS2012\Projects\GIS_Programming\GIS_Programming\obj\x86\Release\GIS_Programming.DataQuery.resources

@@ -56,13 +56,17 @@ namespace GIS_Programming
                     return m_map.get_Layer(i);   //find the i-th layer
                 }
             }
+            MessageBox.Show("未找到相应图层！");
             return null;
         }
 
-        /* 
-         * 
+        /* function GetLayerDataTable
+         * Usage: using ISpatialFilter to get the datatable of the layer
+         * Error Return value: null
+         * Author: JL Ding
+         * Time: 2019/05/12
          */
-        public DataTable GetLayerDataTable(String sLayerName)
+        public DataTable GetLayerDataTable(String sLayerName, ISpatialFilter queryFilter)
         {
 
             ILayer layer = GetLayerByName(sLayerName);
@@ -72,12 +76,22 @@ namespace GIS_Programming
             {
                 return null;
             }
-            IFeatureClass featureClass = featureLayer.FeatureClass;
-
             IFeature feature = null;
-            IFeatureCursor featureCursor = featureLayer.Search(null, false);
-            //IFeatureCursor: Provides access to members that hand out enumerated features, field collections and allows for the updating, deleting and inserting of features.
-            feature = featureCursor.NextFeature();
+            IFeatureCursor featureCursor = null;
+            try
+            {
+                featureCursor = featureLayer.Search(queryFilter, false);
+                //IFeatureCursor: Provides access to members that hand out enumerated features, field collections and allows for the updating, deleting and inserting of features.
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                MessageBox.Show("ERROR：非法的SQL语句！");
+                return null;
+            }//如果SQL语句非法，返回null作为错误值
+            finally
+            {
+                feature = featureCursor.NextFeature();
+            }
             if (feature == null)
             {
                 return null;
@@ -85,21 +99,35 @@ namespace GIS_Programming
             
             DataTable dataTable = new DataTable();
 
+            if (queryFilter != null)
+            {
+                featureLayer = (IFeatureLayer)layer;
+                //featureClass = featureLayer.FeatureClass;
+            }
+            IFeatureClass featureClass = featureLayer.FeatureClass;
+            
             //Add columns
+            int[] columnIndex = new int[featureClass.Fields.FieldCount]; //用于存储某列对应的feature字段
+            int columnCount = 0;
             for (int i = 0; i < featureClass.Fields.FieldCount; i++)
             {
                 DataColumn datacolumn = new DataColumn();
-                datacolumn.ColumnName=featureClass.Fields.get_Field(i).AliasName;  //copy field name to column name
-                if (datacolumn.ColumnName == "Shape")
+                String columnName = featureClass.Fields.get_Field(i).Name;
+                //MessageBox.Show(queryFilter.SubFields);
+                if (queryFilter == null || queryFilter.SubFields.ToString().Contains(columnName))
                 {
-                    datacolumn.DataType = System.Type.GetType("System.Object");
+                    datacolumn.ColumnName = featureClass.Fields.get_Field(i).AliasName;  //copy field name to column name
+                    if (datacolumn.ColumnName == "Shape")
+                    {
+                        datacolumn.DataType = System.Type.GetType("System.Object");
+                    }
+                    else
+                    {
+                        datacolumn.DataType = System.Type.GetType("System.Object");
+                    }
+                    dataTable.Columns.Add(datacolumn);
+                    columnIndex[columnCount++] = i; //记录该列对应的feature字段
                 }
-                else
-                {
-                    datacolumn.DataType = System.Type.GetType("System.Object");
-                }
-                dataTable.Columns.Add(datacolumn);
-
             }
 
             //Add rows
@@ -107,9 +135,9 @@ namespace GIS_Programming
             while (feature != null)
             {
                 dataRow = dataTable.NewRow();
-                for (int i = 0; i < featureClass.Fields.FieldCount; i++)
+                for (int i = 0; i < columnCount; i++)
                 {
-                    if (feature.Fields.get_Field(i).Type == esriFieldType.esriFieldTypeGeometry)
+                    if (feature.Fields.get_Field(columnIndex[i]).Type == esriFieldType.esriFieldTypeGeometry)
                     {
                         switch (feature.Shape.GeometryType)   //for the type of geometry using special switch-case to output its value
                         {
@@ -129,7 +157,7 @@ namespace GIS_Programming
                     }
                     else
                     {
-                        dataRow[i] = feature.get_Value(i);
+                        dataRow[i] = feature.get_Value(columnIndex[i]);
                     }
                 }
                 dataTable.Rows.Add(dataRow);
@@ -207,7 +235,8 @@ namespace GIS_Programming
             if (sType == "Point")
                 geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPoint;
             else if (sType == "Line")
-                geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryLine;
+                geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolyline;
+                //geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryLine;
             else if (sType == "Polygon")
                 geometryDefEdit.GeometryType_2 = ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolygon;
             else
@@ -224,7 +253,6 @@ namespace GIS_Programming
             fieldsEdit.AddField((IField)fieldEdit);
 
             //CreateFeatureClass创建要素
-            //BUG: 创建shapefile功能，CANNOT ADDLINE HERE,有且仅有线shp无法添加，点、面都可以
             IFeatureClass featureClass = featureWorkspace.CreateFeatureClass(sWorkspaceName, fields, null, null, esriFeatureType.esriFTSimple, "Shape", "");
             if (featureWorkspace == null)
                 return null;
@@ -260,7 +288,9 @@ namespace GIS_Programming
             IFeatureClass featureClass = featureLayer.FeatureClass;
 
             //通过IFeature接口访问要素类新创建的要素，并判断是否成功，若失败，函数返回false
-            //BUG： CANNOT CREATEFEATURE
+            //ERROR: 有时候会出现HRESULT:0x80004005错误，如果是新建shapefile并加入就不会有这个错误
+            //NOTE: 此处只能对有访问权限的要素类进行操作（Esri的几份样例地图均不可以操作，比如在world.mxd中的任意图层中添加都会报错）
+            //NOTE: 其实我也不是很清楚是因为没有访问权限报错，还是因为featureclass有多个字段，而本函数没有对这些字段赋值，导致新feature加不进去
             IFeature feature = featureClass.CreateFeature();
             if (feature == null)
                 return false;
@@ -280,6 +310,5 @@ namespace GIS_Programming
             activeView.Refresh();
             return true;
         }
-
     }
 }

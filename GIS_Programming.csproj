@@ -64,6 +64,10 @@
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="ESRI.ArcGIS.Framework, Version=10.2.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="ESRI.ArcGIS.Geodatabase, Version=10.2.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>False</EmbedInteropTypes>
@@ -131,7 +135,14 @@
       <DependentUpon>DataBoard.cs</DependentUpon>
     </Compile>
     <Compile Include="DataOperator.cs" />
+    <Compile Include="DataQuery.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DataQuery.Designer.cs">
+      <DependentUpon>DataQuery.cs</DependentUpon>
+    </Compile>
     <Compile Include="DrawAndAddLine.cs" />
+    <Compile Include="DrawAndAddPolygon.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -155,6 +166,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DataBoard.resx">
       <DependentUpon>DataBoard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DataQuery.resx">
+      <DependentUpon>DataQuery.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <SubType>Designer</SubType>
